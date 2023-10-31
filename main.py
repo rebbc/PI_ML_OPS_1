@@ -106,8 +106,9 @@ async def PlayTimeGenre(genero:str):
     return result
 
 
+@app.get("/recomendacion_usuario/{user_id}")
 
-def recomendacion_usuario(user_id):
+async def recomendacion_usuario(user_id):
     
     if user_id not in df_ml['user_id'].values:
         return f"El usuario {user_id} no se encuentra."
