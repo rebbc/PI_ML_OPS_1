@@ -2,25 +2,24 @@
 from fastapi import FastAPI
 import pandas as pd
 
-df_steams = pd.read_csv('datasets/data_outputs.csv') 
-df_review = pd.read_csv('datasets/data_user.csv')
 
+df = pd.read_csv('datasets/df_usersrecommend.csv')
+df_playtime = pd.read_csv('datasets/df_playtimegenre.csv')
+df_ml = pd.read_csv('datasets/df_ml.csv')
+df_ml_names = pd.read_csv('datasets/df_ml_names.csv')
 
 app = FastAPI()
 
 @app.get("/sentiment_analysis/{ano}")
 
-async def sentiment_analysis(ano:int): 
+async def sentiment_analysis(ano:int):
+    df_usersrecommend = pd.read_csv('datasets/df_usersrecommend.csv')
 
-    release_year = df_steams[df_steams['release_year'] == ano]
-    merged_data = release_year.merge(df_review, on='item_id', how='inner')
-
-    sentiment_counts = merged_data['sentiment_analysis'].value_counts()
-    
+    year = df_usersrecommend[df_usersrecommend['posted_year'] == ano]
+    sentiment_counts = year['sentiment_analysis'].value_counts()
     cant_negativo = sentiment_counts.get(0)
     cant_neutral = sentiment_counts.get(1)
     cant_positivo = sentiment_counts.get(2)
-
     result = {
             f"Negativo: {cant_negativo}, Neutral: {cant_neutral}, Positivo: {cant_positivo}"   
         }
@@ -33,8 +32,6 @@ async def sentiment_analysis(ano:int):
 @app.get("/usersnotrecommend/{ano}")
 
 async def UsersNotRecommend(ano:int):
-
-    df = pd.read_csv('datasets/df_usersrecommend.csv')
 
     year_review = df[df['posted_year'] == ano]
 
@@ -64,13 +61,10 @@ async def UsersNotRecommend(ano:int):
     return resultado
 
 
-
-
 @app.get("/usersrecommend/{ano}")
 
 async def UsersRecommend(ano:int): 
-    df = pd.read_csv('datasets/df_usersrecommend.csv')
-
+    
     year_review = df[df['posted_year'] == ano]
 
 
@@ -98,3 +92,39 @@ async def UsersRecommend(ano:int):
 
     return resultado
 
+@app.get("/playtimegenre/{genero}")
+
+async def PlayTimeGenre(genero:str): 
+
+    data_genero = df_playtime[df_playtime['genres'] == genero]
+    
+    group = data_genero.groupby('posted_year')['playtime_forever'].sum()
+    max_anio = group.idxmax(skipna=True)
+
+    result = {f"Año de lanzamiento con más horas jugadas para {genero}: {max_anio}"}
+
+    return result
+
+
+
+def recomendacion_usuario(user_id):
+    
+    if user_id not in df_ml['user_id'].values:
+        return f"El usuario {user_id} no se encuentra."
+
+    user_cluster = df_ml[df_ml['user_id'] == user_id]['cluster'].values[0]
+
+    users_mismo_cluster = df_ml[df_ml['cluster'] == user_cluster]
+
+    juegos_recomendados = users_mismo_cluster.groupby('item_id')['recommend'].sum()
+    
+    top_5 = juegos_recomendados.sort_values(ascending=False).head(5)
+    
+
+    resultado = print(f"Recomendaciones para el usuario {user_id}:")
+    for i, game_id in enumerate(top_5.index):
+        game_name = df_ml_names.loc[df_ml_names['item_id'] == game_id, 'item_name'].values
+        resultado = print(f"Recomendación {i+1}: {game_name[0]}")
+        
+        
+    return resultado
