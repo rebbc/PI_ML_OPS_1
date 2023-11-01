@@ -3,7 +3,7 @@ from fastapi import FastAPI
 import pandas as pd
 
 
-df = pd.read_csv('datasets/df_usersrecommend.csv')
+df_usersrecommend = pd.read_csv('datasets/df_usersrecommend.csv')
 df_playtime = pd.read_csv('datasets/df_playtimegenre.csv')
 df_ml = pd.read_csv('datasets/df_ml.csv')
 df_ml_names = pd.read_csv('datasets/df_ml_names.csv')
@@ -13,8 +13,7 @@ app = FastAPI()
 @app.get("/sentiment_analysis/{ano}")
 
 async def sentiment_analysis(ano:int):
-    df_usersrecommend = pd.read_csv('datasets/df_usersrecommend.csv')
-
+    
     year = df_usersrecommend[df_usersrecommend['posted_year'] == ano]
     sentiment_counts = year['sentiment_analysis'].value_counts()
     cant_negativo = sentiment_counts.get(0)
@@ -33,7 +32,7 @@ async def sentiment_analysis(ano:int):
 
 async def UsersNotRecommend(ano:int):
 
-    year_review = df[df['posted_year'] == ano]
+    year_review = df_usersrecommend[df_usersrecommend['posted_year'] == ano]
 
 
     reviews_recommend = year_review[year_review['recommend'] == False] 
@@ -48,7 +47,7 @@ async def UsersNotRecommend(ano:int):
         error = f"No se encontraron juegos recomendados para el año especificado."
         return error
     
-    top_3_nombres = df[df['item_id'].isin(top_3.index)][['item_id', 'item_name']].value_counts()
+    top_3_nombres = df_usersrecommend[df_usersrecommend['item_id'].isin(top_3.index)][['item_id', 'item_name']].value_counts()
 
     puesto1 = top_3_nombres.index[0][1]
     puesto2 = top_3_nombres.index[1][1]
@@ -65,7 +64,7 @@ async def UsersNotRecommend(ano:int):
 
 async def UsersRecommend(ano:int): 
     
-    year_review = df[df['posted_year'] == ano]
+    year_review = df_usersrecommend[df_usersrecommend['posted_year'] == ano]
 
 
     reviews_recommend = year_review[year_review['recommend'] == True] 
@@ -80,7 +79,7 @@ async def UsersRecommend(ano:int):
         error = f"No se encontraron juegos recomendados para el año especificado."
         return error
     
-    top_3_nombres = df[df['item_id'].isin(top_3.index)][['item_id', 'item_name']].value_counts()
+    top_3_nombres = df_usersrecommend[df_usersrecommend['item_id'].isin(top_3.index)][['item_id', 'item_name']].value_counts()
 
     puesto1 = top_3_nombres.index[0][1]
     puesto2 = top_3_nombres.index[1][1]
@@ -106,7 +105,7 @@ async def PlayTimeGenre(genero:str):
     return result
 
 
-@app.get("/recomendacion_usuario/{user_id}")
+@app.post("/user_id/")
 
 async def recomendacion_usuario(user_id):
     
@@ -122,10 +121,9 @@ async def recomendacion_usuario(user_id):
     top_5 = juegos_recomendados.sort_values(ascending=False).head(5)
     
 
-    resultado = print(f"Recomendaciones para el usuario {user_id}:")
+    recomendaciones = []
     for i, game_id in enumerate(top_5.index):
         game_name = df_ml_names.loc[df_ml_names['item_id'] == game_id, 'item_name'].values
-        resultado = print(f"Recomendación {i+1}: {game_name[0]}")
-        
-        
-    return resultado
+        recomendaciones.append(f"Recomendación {i+1}: {game_name[0]}")
+    respuesta = {"Recomendaciones para el usuario": user_id, "recomendaciones": recomendaciones}
+    return respuesta
