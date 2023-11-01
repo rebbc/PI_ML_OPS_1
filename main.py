@@ -108,6 +108,8 @@ async def PlayTimeGenre(genero:str):
 @app.post("/user_id/")
 
 async def recomendacion_usuario(user_id):
+df_ml = pd.read_csv('datasets/df_ml.csv')
+df_ml_names = pd.read_csv('datasets/df_ml_names.csv')
     
     if user_id not in df_ml['user_id'].values:
         return f"El usuario {user_id} no se encuentra."
