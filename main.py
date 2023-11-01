@@ -104,6 +104,26 @@ async def PlayTimeGenre(genero:str):
 
     return result
 
+@app.get("/userforgenre/{genero}")
+
+async def UserForGenre(genero:str):
+    
+    data_genero = df_playtime[df_playtime['genres'] == genero]    
+    group = data_genero.groupby('user_id')['playtime_forever'].sum()
+    usuario_max_hs = group.idxmax()
+    data_usuario_max_hs = data_genero[data_genero['user_id'] == usuario_max_hs]
+    horas_por_ano = data_usuario_max_hs.groupby('posted_year')['playtime_forever'].sum()
+
+    acumulacion_horas = [{"Año": int(year), "Horas": int(horas)} for year, horas in horas_por_ano.items()]
+
+    resultado = {
+        "Usuario con más horas jugadas para " + genero: usuario_max_hs,
+        "Horas jugadas": acumulacion_horas
+    }
+
+    return resultado
+
+
 
 @app.post("/user_id/")
 
