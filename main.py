@@ -125,9 +125,9 @@ async def UserForGenre(genero:str):
 
 
 
-@app.get("/recomendacion_usuario_get/{user_id}")
+@app.post("/recomendacion_usuario/")
 
-async def recomendacion_usuario_get(user_id):
+async def recomendacion_usuario(user_id:int):
     
     if user_id not in df_ml['user_id'].values:
         return f"El usuario {user_id} no se encuentra."
@@ -147,7 +147,3 @@ async def recomendacion_usuario_get(user_id):
         recomendaciones.append(f"Recomendación {i+1}: {game_name[0]}")
     respuesta = {"Recomendaciones para el usuario": user_id, "recomendaciones": recomendaciones}
     return respuesta
-
-@app.post("/recomendacion_usuario_post/")
-async def recomendacion_usuario_post(user_id):
-    return recomendacion_usuario_get(user_id)
