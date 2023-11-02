@@ -125,7 +125,7 @@ async def UserForGenre(genero:str):
 
 
 
-@app.get("/recomendacion_usuario/{user_id}")
+@app.get("/recomendacion_usuario_get/{user_id}")
 
 async def recomendacion_usuario_get(user_id):
     
@@ -148,6 +148,6 @@ async def recomendacion_usuario_get(user_id):
     respuesta = {"Recomendaciones para el usuario": user_id, "recomendaciones": recomendaciones}
     return respuesta
 
-@app.post("/recomendacion_usuario/")
+@app.post("/recomendacion_usuario_post/")
 async def recomendacion_usuario_post(user_id):
     return recomendacion_usuario_get(user_id)
